@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { get_playlist } from './api/API';
+import { get_playlist, get_download_link } from './api/API';
+import AudioPlayer from 'react-h5-audio-player';
+import 'react-h5-audio-player/lib/styles.css';
+import song from './audio/test.mp3'
 
 function App() {
   const [videoIds, setVideoIds] = useState([]);
@@ -14,6 +17,15 @@ function App() {
     }
 
     return videoIds;
+  };
+
+  const testDownloadLink = async () => {
+    try {
+      const downloadData = await get_download_link();
+      console.log('Download link:', downloadData.link);
+    } catch (err) {
+      console.log('Error fetching download link:', err);
+    }
   };
 
   useEffect(() => {
@@ -32,11 +44,11 @@ function App() {
   }, []);
   return (
     <div className="App">
-      <ul>
-        {videoIds.map((videoId, index) => (
-          <li key={index}>{videoId}</li>
-        ))}
-      </ul>
+      <AudioPlayer
+        src={song}
+        autoPlay={false}
+        controls
+      />
     </div>
   );
 }
