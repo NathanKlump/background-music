@@ -1,39 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { get_playlist, get_download_link } from './api/API';
-import AudioPlayer from 'react-h5-audio-player';
+import { get_playlist } from './api/API';
 import 'react-h5-audio-player/lib/styles.css';
-import song from './audio/test.mp3'
 
 function App() {
-  const [videoIds, setVideoIds] = useState([]);
+  const [videoTitles, setVideoTitles] = useState([]);
+  const [audioElement, setAudioElement] = useState(null);
+  const [currentTitle, setCurrentTitle] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
 
-  const extractVideoIds = responseObject => {
+  const extractVideoTitles = responseObject => {
     const items = responseObject.items;
-    const videoIds = [];
-
+    const videoTitles = [];
+    console.log(items);
     for (let i = 0; i < items.length; i++) {
-      const videoId = items[i].snippet.resourceId.videoId;
-      videoIds.push(videoId);
+      const videoTitle = items[i].snippet.title;
+      videoTitles.push(videoTitle);
     }
-
-    return videoIds;
-  };
-
-  const testDownloadLink = async () => {
-    try {
-      const downloadData = await get_download_link();
-      console.log('Download link:', downloadData.link);
-    } catch (err) {
-      console.log('Error fetching download link:', err);
-    }
+    return videoTitles;
   };
 
   useEffect(() => {
     const getPlaylist = () => {
       get_playlist()
         .then(data => {
-          const ids = extractVideoIds(data);
-          setVideoIds(ids);
+          const titles = extractVideoTitles(data);
+          setVideoTitles(titles);
         })
         .catch(err => {
           console.log(err);
@@ -42,13 +33,40 @@ function App() {
 
     getPlaylist();
   }, []);
+
+  const toggleAudio = (title) => {
+    if (currentTitle === title) {
+      if (isPlaying) {
+        audioElement.pause();
+      } else {
+        audioElement.play().catch((error) => {
+          console.error('Error playing audio:', error);
+        });
+      }
+      setIsPlaying(!isPlaying);
+    } else {
+      if (audioElement) {
+        audioElement.pause();
+      }
+
+      const newAudioElement = new Audio(`/audio/${title}.mp3`);
+      newAudioElement.play().catch((error) => {
+        console.error('Error playing audio:', error);
+      });
+
+      setAudioElement(newAudioElement);
+      setCurrentTitle(title);
+      setIsPlaying(true);
+    }
+  };
+
   return (
     <div className="App">
-      <AudioPlayer
-        src={song}
-        autoPlay={false}
-        controls
-      />
+      {videoTitles.map((title, index) => (
+        <div key={index} onClick={() => toggleAudio(title)}>
+          <p>{title}</p>
+        </div>
+      ))}
     </div>
   );
 }
