@@ -61,6 +61,18 @@ function App() {
     }
   };
 
+  const skipToNext = () => {
+    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
+    const nextIndex = (currentIndex + 1) % videoData.length;
+    toggleAudio(videoData[nextIndex].title);
+  };
+  
+  const skipToPrevious = () => {
+    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
+    const previousIndex = (currentIndex - 1 + videoData.length) % videoData.length;
+    toggleAudio(videoData[previousIndex].title);
+  };
+
   const toggleCurrentAudio = () => {
     if (audioElement) {
       toggleAudio(currentTitle);
@@ -82,20 +94,25 @@ function App() {
             ? `Now playing: ${truncateTitle(currentTitle)}`
             : "No song playing"}
         </div>
-        <button
-          onClick={toggleCurrentAudio}
-          className="PauseButton"
-        >
-          {isPlaying ? (
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              <path fill="#FFFFFF" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
-            </svg>
-          ) : (
-            <svg width="24" height="24" viewBox="0 0 24 24">
-              <path fill="#FFFFFF" d="M8 5v14l11-7z"></path>
-            </svg>
-          )}
-        </button>
+        <div className="flex items-center space-x-4">
+          <svg onClick={skipToPrevious} width="24" height="24" viewBox="0 0 24 24">
+            <path fill="#FFFFFF" d="M6 6h2v12H6zm3.5 6 8.5 6V6z"></path>
+          </svg>
+          <button onClick={toggleCurrentAudio} className="PauseButton">
+            {isPlaying ? (
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <path fill="#FFFFFF" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+              </svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24">
+                <path fill="#FFFFFF" d="M8 5v14l11-7z"></path>
+              </svg>
+            )}
+          </button>
+          <svg onClick={skipToNext} width="24" height="24" viewBox="0 0 24 24">
+            <path fill="#FFFFFF" d="m6 18 8.5-6L6 6v12zM16 6v12h2V6h-2z"></path>
+          </svg>
+        </div>
       </nav>
       <div className="pt-20">
         {videoData.map((video, index) => (
