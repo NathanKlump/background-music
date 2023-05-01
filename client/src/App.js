@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { get_playlist } from "./api/API";
 import "react-h5-audio-player/lib/styles.css";
+import "./App.css";
 
 function App() {
   const [videoData, setVideoData] = useState([]);
@@ -75,32 +76,47 @@ function App() {
 
   return (
     <div className="App">
-      <nav className="bg-gray-800 p-4 flex justify-between items-center fixed top-0 w-full">
+      <nav className="Navbar">
         <div className="text-white font-bold">
-          {currentTitle ? `Now playing: ${truncateTitle(currentTitle)}` : "No song playing"}
+          {currentTitle
+            ? `Now playing: ${truncateTitle(currentTitle)}`
+            : "No song playing"}
         </div>
         <button
           onClick={toggleCurrentAudio}
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          className="PauseButton"
         >
-          {isPlaying ? "Pause" : "Resume"}
+          {isPlaying ? (
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path fill="#FFFFFF" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"></path>
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24">
+              <path fill="#FFFFFF" d="M8 5v14l11-7z"></path>
+            </svg>
+          )}
         </button>
       </nav>
-      <div className="pt-16">
-      {videoData.map((video, index) => (
-        <div
-          key={index}
-          className="video-item flex items-center space-x-4 cursor-pointer"
-          onClick={() => toggleAudio(video.title)}
-        >
-          <img
-            src={video.thumbnail}
-            alt={video.title}
-            className="w-8 h-8 object-cover"
-          />
-          <p>{truncateTitle(video.title)}</p>
-        </div>
-      ))}
+      <div className="pt-20">
+        {videoData.map((video, index) => (
+          <>
+            <div
+              className="video-item flex items-center space-x-4 cursor-pointer m-2"
+              key={index}
+              onClick={() => toggleAudio(video.title)}
+            >
+              <img
+                src={video.thumbnail}
+                alt={video.title}
+                className="w-16 h-16 object-cover"
+              />
+              <p className="text-white font-semibold">
+                {truncateTitle(video.title)}
+              </p>
+            </div>
+            <div class="h-px w-full bg-gradient-to-r from-transparent via-gray-300 to-transparent my-4"></div>
+          </>
+        ))}
       </div>
     </div>
   );
