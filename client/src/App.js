@@ -12,7 +12,7 @@ function App() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const extractVideoData = (responseObject) => {
-    console.log(responseObject)
+
     const items = responseObject.items;
     const videoData = [];
     for (let i = 0; i < items.length; i++) {
@@ -54,7 +54,6 @@ function App() {
       }
 
       const newAudioElement = new Audio(`/audio/${title}.mp3`);
-      newAudioElement.volume = .5;
       newAudioElement.play().catch((error) => {
         console.error("Error playing audio:", error);
       });
