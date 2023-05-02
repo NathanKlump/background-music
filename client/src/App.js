@@ -10,6 +10,8 @@ function App() {
   const [audioElement, setAudioElement] = useState(null);
   const [currentTitle, setCurrentTitle] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [autoplay, setAutoplay] = useState(false);
+  const [autoplayQueue, setAutoplayQueue] = useState(null);
 
   const extractVideoData = (responseObject) => {
 
@@ -51,6 +53,7 @@ function App() {
     } else {
       if (audioElement) {
         audioElement.pause();
+        audioElement.removeEventListener('ended', handlePlaybackEnded);
       }
 
       const newAudioElement = new Audio(`/audio/${title}.mp3`);
@@ -61,10 +64,20 @@ function App() {
       setAudioElement(newAudioElement);
       setCurrentTitle(title);
       setIsPlaying(true);
+      setAutoplayQueue(getNextSongTitle(currentTitle));
+
+      newAudioElement.addEventListener('ended', handlePlaybackEnded);
     }
   };
 
+  const handlePlaybackEnded = () => {
+    if (autoplay) {
+      toggleAudio(autoplayQueue);
+    }
+  };
+  
   const skipToNext = () => {
+    console.log(getNextSongTitle(currentTitle))
     const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
     const nextIndex = (currentIndex + 1) % videoData.length;
     toggleAudio(videoData[nextIndex].title);
@@ -76,11 +89,21 @@ function App() {
     toggleAudio(videoData[previousIndex].title);
   };
 
+  const getNextSongTitle = (currentTitle) => {
+    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
+    const nextIndex = (currentIndex + 1) % videoData.length;
+    return videoData[nextIndex].title;
+  };
+
   const toggleCurrentAudio = () => {
     if (audioElement) {
       toggleAudio(currentTitle);
     }
   };
+
+  const toggleAutoplay = () => {
+    setAutoplay(!autoplay)
+  }
 
   return (
     <div className="App">
@@ -90,6 +113,9 @@ function App() {
         skipToPrevious={skipToPrevious}
         toggleCurrentAudio={toggleCurrentAudio}
         skipToNext={skipToNext}
+        autoplay={autoplay}
+        toggleAutoplay={toggleAutoplay}
+        audioElement={audioElement}
       />
       <SongList 
         videoData={videoData} 
