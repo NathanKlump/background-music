@@ -11,6 +11,10 @@ function Navbar(props) {
     autoplay,
     toggleAutoplay,
     audioElement,
+    toggleAudio,
+    videoData,
+    isNextSongLoading,
+    setIsNextSongLoading
   } = props;
 
   const truncateTitle = (title, maxLength = 40) => {
@@ -29,7 +33,9 @@ function Navbar(props) {
               ? `Now playing: ${truncateTitle(currentTitle)}`
               : "No song playing"}
           </div>
-        
+          <button onClick={toggleAutoplay} className="text-white font-bold">
+            {autoplay ? <p>On</p> : <p>Off</p>}
+          </button>
           <div className="flex items-center space-x-4">
             <svg
               onClick={skipToPrevious}
@@ -66,7 +72,15 @@ function Navbar(props) {
             </svg>
           </div>
         </div>
-        <SongProgressBar audioElement={audioElement}></SongProgressBar>
+        <SongProgressBar
+          audioElement={audioElement}
+          autoplay={autoplay}
+          currentTitle={currentTitle}
+          toggleAudio={toggleAudio}
+          videoData={videoData}
+          isNextSongLoading={isNextSongLoading}
+          setIsNextSongLoading={setIsNextSongLoading}
+        />
       </div>
     </nav>
   );
