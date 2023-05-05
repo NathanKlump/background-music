@@ -10,7 +10,7 @@ function App() {
   const [audioElement, setAudioElement] = useState(null);
   const [currentTitle, setCurrentTitle] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [autoplay, setAutoplay] = useState(false);
+  const [autoplay, setAutoplay] = useState(true);
   const [isNextSongLoading, setIsNextSongLoading] = useState(false);
 
   const extractVideoData = (responseObject) => {
@@ -103,8 +103,10 @@ function App() {
         audioElement={audioElement}
         toggleAudio={toggleAudio}
         videoData={videoData}
+        setVideoData={setVideoData}
         isNextSongLoading={isNextSongLoading}
         setIsNextSongLoading={setIsNextSongLoading}
+        
       />
       <SongList 
         videoData={videoData} 

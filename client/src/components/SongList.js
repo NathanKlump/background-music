@@ -3,7 +3,7 @@ import React from "react";
 function SongList(props) {
   const { videoData, toggleAudio, currentTitle } = props;
 
-  const truncateTitle = (title, maxLength = 40) => {
+  const truncateTitle = (title, maxLength = 32) => {
     if (title.length > maxLength) {
       return title.substring(0, maxLength) + "...";
     }
@@ -11,7 +11,7 @@ function SongList(props) {
   };
 
   return (
-    <div className="pt-20">
+    <div className="pt-28">
       {videoData.map((video, index) => (
         <>
           <div
