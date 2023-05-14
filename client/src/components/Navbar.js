@@ -15,8 +15,6 @@ function Navbar(props) {
     toggleAudio,
     videoData,
     setVideoData,
-    isNextSongLoading,
-    setIsNextSongLoading,
   } = props;
 
   const truncateTitle = (title, maxLength = 40) => {
@@ -38,8 +36,6 @@ function Navbar(props) {
           currentTitle={currentTitle}
           toggleAudio={toggleAudio}
           videoData={videoData}
-          isNextSongLoading={isNextSongLoading}
-          setIsNextSongLoading={setIsNextSongLoading}
         />
         <div className="flex items-center justify-between mt-2">
           <button onClick={toggleAutoplay} className="font-bold">

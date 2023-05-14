@@ -7,39 +7,38 @@ import SongList from "./components/SongList";
 
 function App() {
   const [videoData, setVideoData] = useState([]);
-  const [audioElement, setAudioElement] = useState(null);
-  const [currentTitle, setCurrentTitle] = useState(null);
+  const [audioElement, setAudioElement] = useState();
+  const [currentTitle, setCurrentTitle] = useState();
+  const [nextSong, setNextSong] = useState();
   const [isPlaying, setIsPlaying] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
-  const [isNextSongLoading, setIsNextSongLoading] = useState(false);
 
+  // Extract video data from the response object
   const extractVideoData = (responseObject) => {
-
     const items = responseObject.items;
-    const videoData = [];
-    for (let i = 0; i < items.length; i++) {
-      const videoTitle = items[i].snippet.title;
-      const thumbnailUrl = items[i].snippet.thumbnails.medium.url;
-      videoData.push({ title: videoTitle, thumbnail: thumbnailUrl });
-    }
+    const videoData = items.map((item) => ({
+      title: item.snippet.title,
+      thumbnail: item.snippet.thumbnails.medium.url,
+    }));
     return videoData;
   };
 
+  // Fetch playlist data when the component mounts
   useEffect(() => {
-    const getPlaylist = () => {
-      get_playlist()
-        .then((data) => {
-          const videoData = extractVideoData(data);
-          setVideoData(videoData);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    const fetchPlaylist = async () => {
+      try {
+        const data = await get_playlist();
+        const extractedData = extractVideoData(data);
+        setVideoData(extractedData);
+      } catch (error) {
+        console.log(error);
+      }
     };
 
-    getPlaylist();
+    fetchPlaylist();
   }, []);
 
+  // Toggle audio playback
   const toggleAudio = (title) => {
     if (currentTitle === title) {
       if (isPlaying) {
@@ -54,41 +53,75 @@ function App() {
       if (audioElement) {
         audioElement.pause();
       }
-  
+
       const newAudioElement = new Audio(`/audio/${title}.mp3`);
       newAudioElement.play().catch((error) => {
         console.error("Error playing audio:", error);
       });
-  
+
       setAudioElement(newAudioElement);
       setCurrentTitle(title);
+      setNextSong(findNextSong(title))
       setIsPlaying(true);
-
-      setIsNextSongLoading(false); // Reset the flag after changing the song
     }
   };
-  
+
+  const findNextSong = (title) => {
+    const currentIndex = videoData.findIndex(
+      (video) => video.title === title
+    );
+    const nextIndex = (currentIndex + 1) % videoData.length;
+    return videoData[nextIndex].title;
+  }
+  // Skip to the next video
   const skipToNext = () => {
-    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
+    const currentIndex = videoData.findIndex(
+      (video) => video.title === currentTitle
+    );
     const nextIndex = (currentIndex + 1) % videoData.length;
     toggleAudio(videoData[nextIndex].title);
   };
-  
+
+  // Skip to the previous video
   const skipToPrevious = () => {
-    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
+    const currentIndex = videoData.findIndex(
+      (video) => video.title === currentTitle
+    );
     const previousIndex = (currentIndex - 1 + videoData.length) % videoData.length;
     toggleAudio(videoData[previousIndex].title);
   };
 
+  // Toggle the currently playing audio
   const toggleCurrentAudio = () => {
     if (audioElement) {
       toggleAudio(currentTitle);
     }
   };
 
+  // Toggle autoplay
   const toggleAutoplay = () => {
-    setAutoplay(!autoplay)
-  }
+    setAutoplay(!autoplay);
+  };
+
+  // Handle audio playback ended event
+  const handleAudioEnded = () => {
+    // Perform actions when audio playback is finished
+    if(autoplay) {
+    toggleAudio(nextSong);
+    }
+  };
+
+  useEffect(() => {
+    if (audioElement) {
+      audioElement.addEventListener('ended', handleAudioEnded);
+    }
+
+    return () => {
+      if (audioElement) {
+        audioElement.removeEventListener('ended', handleAudioEnded);
+      }
+    };
+  }, [audioElement]);
 
   return (
     <div className="App">
@@ -104,9 +137,6 @@ function App() {
         toggleAudio={toggleAudio}
         videoData={videoData}
         setVideoData={setVideoData}
-        isNextSongLoading={isNextSongLoading}
-        setIsNextSongLoading={setIsNextSongLoading}
-        
       />
       <SongList 
         videoData={videoData} 

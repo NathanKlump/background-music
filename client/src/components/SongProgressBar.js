@@ -5,12 +5,6 @@ function SongProgressBar(props) {
 
   const {
     audioElement, 
-    autoplay, 
-    currentTitle, 
-    toggleAudio, 
-    videoData, 
-    isNextSongLoading, 
-    setIsNextSongLoading
   } = props;
   
   useEffect(() => {
@@ -18,12 +12,6 @@ function SongProgressBar(props) {
       if (audioElement) {
         const progress = (audioElement.currentTime / audioElement.duration) * 100;
         setProgressPercentage(progress);
-    
-        if (autoplay && audioElement.duration - audioElement.currentTime <= 2 && !isNextSongLoading) {
-          setIsNextSongLoading(true);
-          const nextSongTitle = getNextSongTitle(currentTitle);
-          toggleAudio(nextSongTitle);
-        }
       }
     };
 
@@ -37,12 +25,6 @@ function SongProgressBar(props) {
       }
     };
   }, [audioElement]);
-
-  const getNextSongTitle = (currentTitle) => {
-    const currentIndex = videoData.findIndex((video) => video.title === currentTitle);
-    const nextIndex = (currentIndex + 1) % videoData.length;
-    return videoData[nextIndex].title;
-  };
 
   const handleProgressBarClick = (event) => {
     if (audioElement && audioElement.duration) {
