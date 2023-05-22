@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { get_playlist } from "./api/API";
 import "react-h5-audio-player/lib/styles.css";
+import { get_playlist } from "./api/API";
+import { storage } from './config/firebaseConfig';
+import { ref, getDownloadURL } from 'firebase/storage';
+
+
 import "./App.css";
 import Navbar from "./components/Navbar";
 import SongList from "./components/SongList";
+import UploadSong from "./components/UploadSong";
 
 function App() {
   const [videoData, setVideoData] = useState([]);
@@ -34,7 +39,6 @@ function App() {
         console.log(error);
       }
     };
-
     fetchPlaylist();
   }, []);
 
@@ -53,18 +57,26 @@ function App() {
       if (audioElement) {
         audioElement.pause();
       }
-
-      const newAudioElement = new Audio(`/audio/${title}.mp3`);
-      newAudioElement.play().catch((error) => {
-        console.error("Error playing audio:", error);
-      });
-
-      setAudioElement(newAudioElement);
-      setCurrentTitle(title);
-      setNextSong(findNextSong(title))
-      setIsPlaying(true);
+  
+      const songRef = ref(storage, `public/${title}.mp3`); // Update the Firebase Storage path
+      getDownloadURL(songRef)
+        .then((url) => {
+          const newAudioElement = new Audio(url);
+          newAudioElement.play().catch((error) => {
+            console.error("Error playing audio:", error);
+          });
+  
+          setAudioElement(newAudioElement);
+          setCurrentTitle(title);
+          setNextSong(findNextSong(title));
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          console.error("Error getting song download URL:", error);
+        });
     }
   };
+  
 
   const findNextSong = (title) => {
     const currentIndex = videoData.findIndex(
@@ -125,23 +137,28 @@ function App() {
 
   return (
     <div className="App">
+      {currentTitle &&
       <Navbar
-        currentTitle={currentTitle}
-        isPlaying={isPlaying}
-        skipToPrevious={skipToPrevious}
-        toggleCurrentAudio={toggleCurrentAudio}
-        skipToNext={skipToNext}
-        autoplay={autoplay}
-        toggleAutoplay={toggleAutoplay}
-        audioElement={audioElement}
-        toggleAudio={toggleAudio}
-        videoData={videoData}
-        setVideoData={setVideoData}
-      />
+      currentTitle={currentTitle}
+      isPlaying={isPlaying}
+      skipToPrevious={skipToPrevious}
+      toggleCurrentAudio={toggleCurrentAudio}
+      skipToNext={skipToNext}
+      autoplay={autoplay}
+      toggleAutoplay={toggleAutoplay}
+      audioElement={audioElement}
+      toggleAudio={toggleAudio}
+      videoData={videoData}
+      setVideoData={setVideoData}
+    />
+      }
       <SongList 
         videoData={videoData} 
         toggleAudio={toggleAudio} 
-        currentTitle={currentTitle} />
+        currentTitle={currentTitle} 
+      />  
+      <UploadSong/>
+
     </div>
   );
 }

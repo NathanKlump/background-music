@@ -11,7 +11,7 @@ function SongList(props) {
   };
 
   return (
-    <div className="pt-28">
+    <div className={currentTitle ? "pt-28" : ""}>
       {videoData.map((video, index) => (
         <>
           <div
