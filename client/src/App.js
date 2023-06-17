@@ -58,7 +58,7 @@ function App() {
         audioElement.pause();
       }
   
-      const songRef = ref(storage, `public/${title}.mp3`); // Update the Firebase Storage path
+      const songRef = ref(storage, `public/${title}.mp3`);
       getDownloadURL(songRef)
         .then((url) => {
           const newAudioElement = new Audio(url);
