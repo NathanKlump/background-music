@@ -177,7 +177,6 @@ const fetchAndPlaySong = (title) => {
 
   return (
     <div className="App">
-      {currentTitle &&
       <Navbar
       currentTitle={currentTitle}
       isPlaying={isPlaying}
@@ -190,8 +189,7 @@ const fetchAndPlaySong = (title) => {
       toggleAudio={toggleAudio}
       videoData={videoData}
       setVideoData={setVideoData}
-    />
-      }
+      />
       <SongList 
         videoData={videoData} 
         toggleAudio={toggleAudio} 
