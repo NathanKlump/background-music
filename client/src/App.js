@@ -17,7 +17,6 @@ function App() {
   const [nextSong, setNextSong] = useState();
   const [isPlaying, setIsPlaying] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
-  const [nextAudioElement, setNextAudioElement] = useState(null);
 
   // Extract video data from the response object
   const extractVideoData = (responseObject) => {
@@ -44,78 +43,39 @@ function App() {
   }, []);
 
   // Toggle audio playback
-  const pauseAudio = () => {
-    if (audioElement) {
-      audioElement.pause();
-    }
-  }
-  
-  const playAudio = (audioElement) => {
-    audioElement.play().catch((error) => {
-      console.error("Error playing audio:", error);
-    });
-  }
-  
-  const updateCurrentSong = (title, audioElement) => {
-    if(audioElement && audioElement.eventListenerAdded) {
-      audioElement.removeEventListener('canplaythrough', audioElement.handleCanPlayThrough);
-    }
-    setAudioElement(audioElement);
-    setCurrentTitle(title);
-    const nextTitle = findNextSong(title);
-    setNextSong(nextTitle);
-    setIsPlaying(true);
-  }
-  
-const fetchAndPlaySong = (title) => {
-  const songRef = ref(storage, `public/${title}.mp3`);
-  getDownloadURL(songRef)
-    .then((url) => {
-      const newAudioElement = new Audio(url);
-      
-      // Function to handle canplaythrough event
-      const handleCanPlayThrough = () => {
-        playAudio(newAudioElement);
-        updateCurrentSong(title, newAudioElement);
-      };
-      
-      // Add event listener and store the handleCanPlayThrough function and eventListenerAdded flag in the audio element
-      newAudioElement.addEventListener('canplaythrough', handleCanPlayThrough);
-      newAudioElement.handleCanPlayThrough = handleCanPlayThrough;
-      newAudioElement.eventListenerAdded = true;
-      
-    })
-    .catch((error) => {
-      console.error("Error getting song download URL:", error);
-    });
-}
-
-
-  
-  // Toggle audio playback
   const toggleAudio = (title) => {
     if (currentTitle === title) {
       if (isPlaying) {
-        pauseAudio();
+        audioElement.pause();
       } else {
-        playAudio(audioElement);
+        audioElement.play().catch((error) => {
+          console.error("Error playing audio:", error);
+        });
       }
       setIsPlaying(!isPlaying);
     } else {
-      pauseAudio();
-  
-      if (nextAudioElement && nextSong === title) {
-        // If we have a preloaded audio for the next song, use it
-        playAudio(nextAudioElement);
-        updateCurrentSong(title, nextAudioElement);
-        setNextAudioElement(null); // clear the preloaded audio after it's used
-      } else {
-        // Otherwise fetch the song and play it as before
-        fetchAndPlaySong(title);
+      if (audioElement) {
+        audioElement.pause();
       }
+  
+      const songRef = ref(storage, `public/${title}.mp3`);
+      getDownloadURL(songRef)
+        .then((url) => {
+          const newAudioElement = new Audio(url);
+          newAudioElement.play().catch((error) => {
+            console.error("Error playing audio:", error);
+          });
+  
+          setAudioElement(newAudioElement);
+          setCurrentTitle(title);
+          setNextSong(findNextSong(title));
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          console.error("Error getting song download URL:", error);
+        });
     }
   };
-  
   
 
   const findNextSong = (title) => {
