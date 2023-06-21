@@ -15,6 +15,10 @@ function App() {
   const [audioElement, setAudioElement] = useState();
   const [currentTitle, setCurrentTitle] = useState();
   const [nextSong, setNextSong] = useState();
+  const [nextSongUrl, setNextSongUrl] = useState({
+    title: '',
+    url: ''
+  });
   const [isPlaying, setIsPlaying] = useState(false);
   const [autoplay, setAutoplay] = useState(true);
 
@@ -44,53 +48,92 @@ function App() {
 
   // Toggle audio playback
     // Function to pause the current audio
-    const pauseAudio = () => {
-      if (audioElement) {
-        audioElement.pause();
-        setIsPlaying(false);
-      }
-    };
+  const pauseAudio = () => {
+    if (audioElement) {
+      audioElement.pause();
+      setIsPlaying(false);
+    }
+  };
+
+  const fetchSongUrl = (title) => {
+    const songRef = ref(storage, `public/${title}.mp3`);
+    return getDownloadURL(songRef)
+      .then((url) => {
+        return url;
+      })
+      .catch((error) => {
+        console.error("Error getting song download URL:", error);
+      });
+  };
   
-    // Function to play a new audio
-    const playNewAudio = (title) => {
-      const songRef = ref(storage, `public/${title}.mp3`);
-      getDownloadURL(songRef)
-        .then((url) => {
-          const newAudioElement = new Audio(url);
-          newAudioElement.play().catch((error) => {
-            console.error("Error playing audio:", error);
-          });
+  // Function to play a new audio
+  let abortController = new AbortController();
+
+  const playNewAudio = (title) => {
+    // Abort any in-progress fetch operation
+    abortController.abort();
+    abortController = new AbortController();
   
-          setAudioElement(newAudioElement);
-          setCurrentTitle(title);
-          setNextSong(findNextSong(title));
-          setIsPlaying(true);
-        })
-        .catch((error) => {
-          console.error("Error getting song download URL:", error);
+    // Check if the title of the next song URL matches the current title
+    const songUrl = (nextSongUrl.title === title) ? nextSongUrl.url : fetchSongUrl(title, { signal: abortController.signal });
+  
+    Promise.resolve(songUrl)
+      .then((url) => {
+        const newAudioElement = new Audio(url);
+        newAudioElement.play().catch((error) => {
+          if (error.name === 'AbortError') {
+            // Fetch operation was cancelled
+            console.log('Fetch operation was cancelled');
+          } else {
+            console.error('Error playing audio:', error);
+          }
         });
-    };
   
-    // Function to resume the current audio
-    const resumeAudio = () => {
-      if (audioElement) {
-        audioElement.play().catch((error) => {
-          console.error("Error playing audio:", error);
-        });
+        setAudioElement(newAudioElement);
+        setCurrentTitle(title);
+        setNextSong(findNextSong(title));
         setIsPlaying(true);
-      }
-    };
   
-    // Toggle audio playback
-    const toggleAudio = (title) => {
-      if (currentTitle === title) {
-        isPlaying ? pauseAudio() : resumeAudio();
-      } else {
-        pauseAudio();
-        playNewAudio(title);
-      }
-    };  
+        // Fetch the URL of the next song and update nextSongUrl state
+        const nextSongTitle = findNextSong(title);
+        return fetchSongUrl(nextSongTitle);
+      })
+      .then((nextSongInfo) => {
+        // nextSongInfo is an object with title and url properties
+        setNextSongUrl(nextSongInfo);
+      })
+      .catch((error) => {
+        if (error.name === 'AbortError') {
+          // Fetch operation was cancelled
+          console.log('Fetch operation was cancelled');
+        } else {
+          console.error('Error getting song URL:', error);
+        }
+      });
+  };
   
+  
+  
+
+  // Function to resume the current audio
+  const resumeAudio = () => {
+    if (audioElement) {
+      audioElement.play().catch((error) => {
+        console.error("Error playing audio:", error);
+      });
+      setIsPlaying(true);
+    }
+  };
+
+  // Toggle audio playback
+  const toggleAudio = (title) => {
+    if (currentTitle === title) {
+      isPlaying ? pauseAudio() : resumeAudio();
+    } else {
+      pauseAudio();
+      playNewAudio(title);
+    }
+  };
 
   const findNextSong = (title) => {
     const currentIndex = videoData.findIndex(
@@ -98,7 +141,7 @@ function App() {
     );
     const nextIndex = (currentIndex + 1) % videoData.length;
     return videoData[nextIndex].title;
-  }
+  };
   // Skip to the next video
   const skipToNext = () => {
     const currentIndex = videoData.findIndex(
