@@ -43,21 +43,16 @@ function App() {
   }, []);
 
   // Toggle audio playback
-  const toggleAudio = (title) => {
-    if (currentTitle === title) {
-      if (isPlaying) {
-        audioElement.pause();
-      } else {
-        audioElement.play().catch((error) => {
-          console.error("Error playing audio:", error);
-        });
-      }
-      setIsPlaying(!isPlaying);
-    } else {
+    // Function to pause the current audio
+    const pauseAudio = () => {
       if (audioElement) {
         audioElement.pause();
+        setIsPlaying(false);
       }
+    };
   
+    // Function to play a new audio
+    const playNewAudio = (title) => {
       const songRef = ref(storage, `public/${title}.mp3`);
       getDownloadURL(songRef)
         .then((url) => {
@@ -74,8 +69,27 @@ function App() {
         .catch((error) => {
           console.error("Error getting song download URL:", error);
         });
-    }
-  };
+    };
+  
+    // Function to resume the current audio
+    const resumeAudio = () => {
+      if (audioElement) {
+        audioElement.play().catch((error) => {
+          console.error("Error playing audio:", error);
+        });
+        setIsPlaying(true);
+      }
+    };
+  
+    // Toggle audio playback
+    const toggleAudio = (title) => {
+      if (currentTitle === title) {
+        isPlaying ? pauseAudio() : resumeAudio();
+      } else {
+        pauseAudio();
+        playNewAudio(title);
+      }
+    };  
   
 
   const findNextSong = (title) => {
