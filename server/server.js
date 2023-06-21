@@ -89,7 +89,7 @@ async function dailyTask() {
 
     for (let i = 0; i < trackDetailsList.length; i++) {
       let audioFiles;
-      if (trackDetailsList[i] && trackDetailsList[i].youtubeVideo && trackDetailsList[i].youtubeVideo.audio && trackDetailsList[i].youtubeVideo.audio[0]) {
+      if (trackDetailsList[i]?.youtubeVideo?.audio?.[0]) {
         audioFiles = trackDetailsList[i].youtubeVideo.audio[0].url;
 
         const response = await axios.get(audioFiles, { responseType: 'arraybuffer' });
