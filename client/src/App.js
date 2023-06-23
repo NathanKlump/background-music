@@ -10,7 +10,6 @@ import SongList from "./components/SongList";
 import UploadSong from "./components/UploadSong";
 
 function App() {
-  // State Declarations
   const [videoData, setVideoData] = useState([]);
   const [audioElement, setAudioElement] = useState();
   const [currentTitle, setCurrentTitle] = useState();
@@ -40,7 +39,6 @@ function App() {
         thumbnail: item.snippet.thumbnails.medium.url,
       }));
       setVideoData(videoData);
-      console.log(videoData);
     } catch (error) {
       console.log(error);
     }
@@ -67,9 +65,7 @@ function App() {
 
   const resumeAudio = () => {
     if (audioElement) {
-      audioElement.play().catch((error) => {
-        console.error("Error playing audio:", error);
-      });
+      audioElement.play()
       setIsPlaying(true);
     }
   };
@@ -90,18 +86,11 @@ function App() {
   
     // Check if the title of the next song URL matches the current title
     const songUrl = (nextSongUrl.title === title) ? nextSongUrl.url : fetchSongUrl(title, { signal: abortController.signal });
-  
+    
     Promise.resolve(songUrl)
       .then((url) => {
-        const newAudioElement = new Audio(url);
-        newAudioElement.play().catch((error) => {
-          if (error.name === 'AbortError') {
-            // Fetch operation was cancelled
-            console.log('Fetch operation was cancelled');
-          } else {
-            console.error('Error playing audio:', error);
-          }
-        });
+        const newAudioElement = new Audio(url);        
+        newAudioElement.play()
   
         setAudioElement(newAudioElement);
         setCurrentTitle(title);
@@ -116,33 +105,22 @@ function App() {
         // nextSongInfo is an object with title and url properties
         setNextSongUrl(nextSongInfo);
       })
-      .catch((error) => {
-        if (error.name === 'AbortError') {
-          // Fetch operation was cancelled
-          console.log('Fetch operation was cancelled');
-        } else {
-          console.error('Error getting song URL:', error);
-        }
-      });
   };
 
   const findCurrentSongIndex = (title) => videoData.findIndex((video) => video.title === title);
 
   const findNextSong = (title) => {
-    const currentIndex = findCurrentSongIndex(title);
-    const nextIndex = (currentIndex + 1) % videoData.length;
+    const nextIndex = (findCurrentSongIndex(title) + 1) % videoData.length;
     return videoData[nextIndex].title;
   };
   
   const skipToNext = () => {
-    const currentIndex = findCurrentSongIndex(currentTitle);
-    const nextIndex = (currentIndex + 1) % videoData.length;
+    const nextIndex = (findCurrentSongIndex(currentTitle) + 1) % videoData.length;
     toggleAudio(videoData[nextIndex].title);
   };
   
   const skipToPrevious = () => {
-    const currentIndex = findCurrentSongIndex(currentTitle);
-    const previousIndex = (currentIndex - 1 + videoData.length) % videoData.length;
+    const previousIndex = (findCurrentSongIndex(currentTitle) - 1 + videoData.length) % videoData.length;
     toggleAudio(videoData[previousIndex].title);
   };
   
