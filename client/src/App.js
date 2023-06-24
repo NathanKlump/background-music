@@ -108,31 +108,39 @@ function App() {
    */
 
   const playNewAudio = (title) => {
-    abortController.abort();
-    abortController = new AbortController();
-
-    const songUrl =
-      nextSongUrl.title === title
-        ? nextSongUrl.url
-        : fetchSongUrl(title, { signal: abortController.signal });
-
-    Promise.resolve(songUrl)
-      .then((url) => {
-        const newAudioElement = new Audio(url);
-        newAudioElement.play();
-
-        setAudioElement(newAudioElement);
-        setCurrentTitle(title);
-        setNextSong(findNextSong(title));
-        setIsPlaying(true);
-
-        const nextSongTitle = findNextSong(title);
-        return fetchSongUrl(nextSongTitle);
-      })
-      .then((nextSongInfo) => {
-        setNextSongUrl(nextSongInfo);
-      });
+    try {
+      abortController.abort();
+      abortController = new AbortController();
+  
+      const songUrl =
+        nextSongUrl.title === title
+          ? nextSongUrl.url
+          : fetchSongUrl(title, { signal: abortController.signal });
+  
+      Promise.resolve(songUrl)
+        .then((url) => {
+          const newAudioElement = new Audio(url);
+          newAudioElement.play();
+  
+          setAudioElement(newAudioElement);
+          setCurrentTitle(title);
+          setNextSong(findNextSong(title));
+          setIsPlaying(true);
+  
+          const nextSongTitle = findNextSong(title);
+          return fetchSongUrl(nextSongTitle);
+        })
+        .then((nextSongInfo) => {
+          setNextSongUrl(nextSongInfo);
+        })
+        .catch((error) => {
+          alert('An error occurred while fetching the next song URL in playNewAudio function for title: ' + title + ' ' + error);
+        });
+    } catch (error) {
+      alert('An error occurred outside of the promise in the playNewAudio function for title: ' + title + ' ' + error);
+    }
   };
+  
 
   /**
    * ---------------------------------------------------------------------------
