@@ -134,10 +134,10 @@ function App() {
           setNextSongUrl(nextSongInfo);
         })
         .catch((error) => {
-          alert('An error occurred while fetching the next song URL in playNewAudio function for title: ' + title + ' ' + error);
+          console.log('An error occurred while fetching the next song URL in playNewAudio function for title: ' + title + ' ' + error);
         });
     } catch (error) {
-      alert('An error occurred outside of the promise in the playNewAudio function for title: ' + title + ' ' + error);
+      console.log('An error occurred outside of the promise in the playNewAudio function for title: ' + title + ' ' + error);
     }
   };
   
