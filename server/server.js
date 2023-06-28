@@ -8,123 +8,116 @@ const { storage } = require('./config/firebaseConfig');
 const app = express();
 const port = 3001;
 
+
+
+
+
 // Function to be called every 24 hours
 async function dailyTask() {
   console.log('Performing daily task...');
   
 
-  let songsArrDB = [];
-  let songsArrYT = [];
-  let songsNotInDB = [];
-  let songsNotInYT = [];
+// Initialize arrays for songs
+let songsArrDB = [];
+let songsArrYT = [];
+let songsNotInDB = [];
+let songsNotInYT = [];
 
-  const allSongsRef = ref(storage, 'public');
+// Get reference to the storage location for all songs
+const allSongsRef = ref(storage, 'public');
 
-  const extractVideoData = ({ items }) => items.map(item => item.snippet.title);
+  try {
+    const [firebaseRes, youtubeRes] = await Promise.all([listAll(allSongsRef), get_playlist()]);
 
-  //=====================================================================================================
-    // Function to remove songs
+    // Parse Firebase data and populate songsArrDB
+    firebaseRes.items.forEach((itemRef) => {
+      songsArrDB.push(itemRef.fullPath.replace('public/', '').replace('.mp3', ''));
+    });
+  
+    // Extract video titles from YouTube response
+    const extractVideoData = ({ items }) => items.map(item => item.snippet.title);
+    songsArrYT = extractVideoData(youtubeRes);
+  
+    // Identify songs that are in YouTube but not in the database (songsNotInDB)
+    songsNotInDB = songsArrYT.filter(song => !songsArrDB.includes(song));
+  
+    // Identify songs that are in the database but not in YouTube (songsNotInYT)
+    songsNotInYT = songsArrDB.filter(song => !songsArrYT.includes(song));
+
+
+    /**
+ * ---------------------------------------------------------------------------
+ * Description: This section of code adds songs to the database.
+ * It iterates through the songsNotInDB array and retrieves track details for each song.
+ * If the track details include a valid audio file URL, the audio file is downloaded using axios,
+ * converted to Uint8Array, and then uploaded to the storage reference. A success message is logged
+ * to the console after successful upload. If any errors occur during the process, they are caught and
+ * logged with appropriate error messages. To prevent rate limiting, there's a delay of at least 4 seconds
+ * between each upload.
+ * Returns: None
+ * Usage: Call this section of code to add songs to the database.
+ * ---------------------------------------------------------------------------
+ */
+    console.log("beginning Adding songs to the Database process...");
+    const delay = (interval) => new Promise((resolve) => setTimeout(resolve, interval));
+    
+    for (const song of songsNotInDB) {
+      try {
+        const trackDetails = await get_track(song);
+    
+        if (trackDetails?.youtubeVideo?.audio?.[0]) {
+          const audioFiles = trackDetails.youtubeVideo.audio[0].url;
+          await delay(500);
+          const response = await axios.get(audioFiles, { responseType: 'arraybuffer' });
+          await delay(500);
+          const audioData = new Uint8Array(response.data);
+          const audioFileRef = ref(storage, `public/${song}.mp3`);
+          const metadata = {
+            contentType: 'audio/mp4; codecs="mp4a.40.2"',
+          };
+          
+          await uploadBytesResumable(audioFileRef, audioData, metadata);
+          console.log(`Added ${song} to the database`);
+        } else {
+          console.log(`Could not retrieve audio file url for ${song}`);
+        }
+      } catch (error) {
+        console.error(`Failed to add ${song}: ${error.message}`);
+      }
+    
+      // Ensure there's at least 4 seconds delay between each upload to prevent hitting rate limit
+      await delay(4000);
+    }
+    
+    console.log("finished Adding songs to the Database process.");
+    
+    /**
+ * ---------------------------------------------------------------------------
+ * Function: removeSongs
+ * Description: This function is responsible for removing songs from the database.
+ * It takes an input array of songs and iterates through a limited number of songs (maximum 4) to remove them.
+ * Each song is deleted by calling the `deleteObject` function on the corresponding storage reference.
+ * Upon successful deletion, a success message is logged to the console. In case of an error,
+ * the error message is also logged.
+ * Returns: None
+ * Usage: Call this function to remove songs from the database.
+ * ---------------------------------------------------------------------------
+ */
+    console.log("beginning Remove Songs from Database process...");
     const removeSongs = (inputArr) => {
-      for (let i = 0; i < inputArr.length; i++) {
+      const limit = Math.min(inputArr.length, 4); // get the minimum of array length or 5
+      for (let i = 0; i < limit; i++) {
         const termRef = ref(storage, `public/${inputArr[i]}.mp3`);
         deleteObject(termRef).then(() => {
           console.log(`${inputArr[i]} deleted successfully`);
         }).catch((error) => {
           console.log(error)
-        })
+        });
       }
-    }
-
-    function findDuplicates(inputArr) {
-      const seen = new Set();
-      const duplicates = [];
-    
-      // Loop through the songs and check if they are already in the set.
-      for (const song of inputArr) {
-        if (!seen.has(song)) {
-          seen.add(song);
-        } else {
-          duplicates.push(song);
-        }
-      }
-    
-      return duplicates;
-    }
-  //=====================================================================================================
-
-  // Wait for both Firebase and YouTube fetches to complete
-  try {
-    const [firebaseRes, youtubeRes] = await Promise.all([listAll(allSongsRef), get_playlist()]);
-
-    // Parse Firebase and YouTube data
-    firebaseRes.items.forEach((itemRef) => {
-      songsArrDB.push(itemRef.fullPath.replace('public/', '').replace('.mp3', ''));
-    });
-
-    ///==============================================================================
-    ///
-    /// Pruning duplicate songs
-    ///
-    ///==============================================================================
-    //console.log("beginning pruning process...");
-    //removeSongs(findDuplicates(songsArrDB));
-    //console.log("finished pruning process.");
-    ///==============================================================================
-    ///
-    /// End of Pruning duplicate songs
-    ///
-    ///==============================================================================
-    songsArrYT = extractVideoData(youtubeRes);
-    songsNotInDB = songsArrYT.filter(song => !songsArrDB.includes(song));
-    songsNotInYT = songsArrDB.filter(song => !songsArrYT.includes(song));
-
-    ///==============================================================================
-    ///
-    /// Adding songs to the Database
-    ///
-    ///==============================================================================
-    console.log("beginning Adding songs to the Database process...");
-    const promises = songsNotInDB.map(song => get_track(song));
-    const trackDetailsList = await Promise.all(promises);
-
-    for (let i = 0; i < trackDetailsList.length; i++) {
-      let audioFiles;
-      if (trackDetailsList[i]?.youtubeVideo?.audio?.[0]) {
-        audioFiles = trackDetailsList[i].youtubeVideo.audio[0].url;
-
-        const response = await axios.get(audioFiles, { responseType: 'arraybuffer' });
-        const audioData = new Uint8Array(response.data);
-        const audioFileRef = ref(storage, `public/${songsNotInDB[i]}.mp3`);
-        const metadata = {
-          contentType: 'audio/mp4; codecs="mp4a.40.2"',
-        };        
-    
-        await uploadBytesResumable(audioFileRef, audioData, metadata);
-
-      } else {
-        console.log(`Could not retrieve audio file url for ${songsNotInDB[i]}`);
-      }
-    }
-    console.log("finished Adding songs to the Database process.");
-    ///==============================================================================
-    ///
-    /// End of Adding songs to the Database
-    ///
-    ///==============================================================================
-
-    ///==============================================================================
-    ///
-    /// Remove Songs from Database
-    ///
-    ///==============================================================================
-    console.log("beginning Remove Songs from Database process...");
+    };
     removeSongs(songsNotInYT)
     console.log("finished Remove Songs from Database process.");
-    ///==============================================================================
-    ///
-    /// End of Remove Songs from Database
-    ///
-    ///==============================================================================
+
   } catch (error) {
     console.error('Error fetching data:', error);
   }
