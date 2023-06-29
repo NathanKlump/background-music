@@ -6,7 +6,7 @@ const playlist_api = {
     params: {
       playlistId: 'PLeRj4b8xSv41Lv9dJ1I7Mk8RgQ3Kv1YC_',
       part: 'snippet',
-      maxResults: '500',
+      maxResults: '50',
     },
     headers: {
       'content-type': 'application/octet-stream',
@@ -22,7 +22,7 @@ const playlist_api = {
       track: ''
     },
     headers: {
-      'X-RapidAPI-Key': 'a82d08bb97msheba6e9257f802b0p163ca7jsn0392ca4ca0a3',
+      'X-RapidAPI-Key': '2fef321d6cmsh0f74e95e9acf822p1d23dbjsn42fd38bcce66',
       'X-RapidAPI-Host': 'spotify-scraper.p.rapidapi.com'
     }
   };
