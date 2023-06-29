@@ -22,7 +22,7 @@ const playlist_api = {
       track: ''
     },
     headers: {
-      'X-RapidAPI-Key': '2fef321d6cmsh0f74e95e9acf822p1d23dbjsn42fd38bcce66',
+      'X-RapidAPI-Key': '6e648e6e30msh65a612fd7f5beb3p183911jsn9ecca92644b7',
       'X-RapidAPI-Host': 'spotify-scraper.p.rapidapi.com'
     }
   };

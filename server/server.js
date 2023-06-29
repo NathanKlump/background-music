@@ -60,38 +60,69 @@ const allSongsRef = ref(storage, 'public');
  * Usage: Call this section of code to add songs to the database.
  * ---------------------------------------------------------------------------
  */
-    console.log("beginning Adding songs to the Database process...");
-    const delay = (interval) => new Promise((resolve) => setTimeout(resolve, interval));
+    const TimeOut = (interval) => new Promise((resolve) => setTimeout(resolve, interval));
+
+    const fetchAudioFileStream = async (audioFilesUrl) => await axios.get(audioFilesUrl, { responseType: 'stream' });
     
-    for (const song of songsNotInDB) {
-      try {
-        const trackDetails = await get_track(song);
+    const convertAudioStreamToMP3 = (inputStream, outputFilePath) => {
+      return new Promise((resolve, reject) => {
+        ffmpeg(inputStream)
+          .format('mp3')
+          .on('end', () => resolve())
+          .on('error', (err) => reject(err.message))
+          .pipe(fs.createWriteStream(outputFilePath), { end: true });
+      });
+    };
     
-        if (trackDetails?.youtubeVideo?.audio?.[0]) {
-          const audioFiles = trackDetails.youtubeVideo.audio[0].url;
-          await delay(500);
-          const response = await axios.get(audioFiles, { responseType: 'arraybuffer' });
-          await delay(500);
-          const audioData = new Uint8Array(response.data);
-          const audioFileRef = ref(storage, `public/${song}.mp3`);
-          const metadata = {
-            contentType: 'audio/mp4; codecs="mp4a.40.2"',
-          };
-          
-          await uploadBytesResumable(audioFileRef, audioData, metadata);
-          console.log(`Added ${song} to the database`);
-        } else {
-          console.log(`Could not retrieve audio file url for ${song}`);
+    const uploadMP3ToFirebase = async (outputFilePath, songName) => {
+      const audioData = fs.readFileSync(outputFilePath);
+      const audioFileRef = ref(storage, `public/${songName}.mp3`);
+      const metadata = {
+        contentType: 'audio/mp3',
+      };
+    
+      await uploadBytesResumable(audioFileRef, audioData, metadata);
+    };
+    
+    const fetchConvertAndUploadSong = async (song) => {
+      const trackDetails = await get_track(song);
+    
+      if (trackDetails?.youtubeVideo?.audio?.[0]) {
+        const audioFilesUrl = trackDetails.youtubeVideo.audio[0].url;
+        await TimeOut(500);
+    
+        const outputFilePath = `./${song}.mp3`;
+        const response = await fetchAudioFileStream(audioFilesUrl);
+    
+        try {
+          await convertAudioStreamToMP3(response.data, outputFilePath);
+          await uploadMP3ToFirebase(outputFilePath, song);
+    
+          fs.unlinkSync(outputFilePath);
+        } catch (error) {
+          console.error(`Failed to convert and upload ${song}: ${error}`);
         }
-      } catch (error) {
-        console.error(`Failed to add ${song}: ${error.message}`);
+      } else {
+        console.log(`Could not retrieve audio file url for ${song}`);
       }
+    };
     
-      // Ensure there's at least 4 seconds delay between each upload to prevent hitting rate limit
-      await delay(4000);
-    }
+    const addSongsToFirebaseDatabase = async (songsNotInDB) => {
+      console.log("Beginning process to add songs to the Firebase database...");
     
-    console.log("finished Adding songs to the Database process.");
+      for (const song of songsNotInDB) {
+        try {
+          await fetchConvertAndUploadSong(song);
+          await TimeOut(4000);  // 4 seconds delay to prevent hitting rate limit
+        } catch (error) {
+          console.error(`Failed to add ${song} to Firebase: ${error.message}`);
+        }
+      }
+      console.log("Finished process to add songs to the Firebase database.");
+    };
+    
+    // Invoke the function with the list of songs
+    addSongsToFirebaseDatabase(songsNotInDB);
     
     /**
  * ---------------------------------------------------------------------------
