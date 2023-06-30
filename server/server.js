@@ -37,8 +37,10 @@ const allSongsRef = ref(storage, 'public');
     });
   
     // Extract video titles from YouTube response
-    const extractVideoData = ({ items }) => items.map(item => item.snippet.title);
-    songsArrYT = extractVideoData(youtubeRes);
+    songsArrYT = youtubeRes.map((item) => ([
+      item.snippet.title
+    ]));
+    console.log(songsArrYT);
   
     // Identify songs that are in YouTube but not in the database (songsNotInDB)
     songsNotInDB = songsArrYT.filter(song => !songsArrDB.includes(song));
@@ -122,7 +124,7 @@ const allSongsRef = ref(storage, 'public');
     };
     
     // Invoke the function with the list of songs
-    addSongsToFirebaseDatabase(songsNotInDB);
+    //addSongsToFirebaseDatabase(songsNotInDB);
     
     /**
  * ---------------------------------------------------------------------------
@@ -148,7 +150,7 @@ const allSongsRef = ref(storage, 'public');
         });
       }
     };
-    removeSongs(songsNotInYT)
+    //removeSongs(songsNotInYT)
     console.log("finished Remove Songs from Database process.");
 
   } catch (error) {
