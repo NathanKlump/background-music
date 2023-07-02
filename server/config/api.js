@@ -34,7 +34,7 @@ const get_playlist = async () => {
       track: ''
     },
     headers: {
-      'X-RapidAPI-Key': '6e648e6e30msh65a612fd7f5beb3p183911jsn9ecca92644b7',
+      'X-RapidAPI-Key': 'ebe6fc0e27msh67e1521d5efc9bfp15db2ejsn1b9bd743de9b',
       'X-RapidAPI-Host': 'spotify-scraper.p.rapidapi.com'
     }
   };

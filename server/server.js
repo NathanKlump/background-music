@@ -20,10 +20,7 @@ async function dailyTask() {
   
 
 // Initialize arrays for songs
-let songsArrDB = [];
-let songsArrYT = [];
-let songsNotInDB = [];
-let songsNotInYT = [];
+let songsArrDB = [], songsArrYT = [], songsNotInDB = [], songsNotInYT = [];
 
 // Get reference to the storage location for all songs
 const allSongsRef = ref(storage, 'public');
@@ -37,9 +34,9 @@ const allSongsRef = ref(storage, 'public');
     });
   
     // Extract video titles from YouTube response
-    songsArrYT = youtubeRes.map((item) => ([
+    songsArrYT = youtubeRes.map((item) => (
       item.snippet.title
-    ]));
+    ));
     console.log(songsArrYT);
   
     // Identify songs that are in YouTube but not in the database (songsNotInDB)
@@ -124,7 +121,7 @@ const allSongsRef = ref(storage, 'public');
     };
     
     // Invoke the function with the list of songs
-    //addSongsToFirebaseDatabase(songsNotInDB);
+    addSongsToFirebaseDatabase(songsNotInDB);
     
     /**
  * ---------------------------------------------------------------------------
@@ -150,7 +147,7 @@ const allSongsRef = ref(storage, 'public');
         });
       }
     };
-    //removeSongs(songsNotInYT)
+    removeSongs(songsNotInYT)
     console.log("finished Remove Songs from Database process.");
 
   } catch (error) {
@@ -158,8 +155,7 @@ const allSongsRef = ref(storage, 'public');
   }
 }
 
-
-// Call the function immediately when the server starts
+// preform the daily task immediately
 dailyTask();
 
 // Then call it every 24 hours

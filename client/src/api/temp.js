@@ -24,6 +24,6 @@ export const get_playlist = async () => {
     allData = [...allData, ...response.data.items];
     pageToken = response.data.nextPageToken;
   } while (pageToken);
-  console.log(allData);
+  console.log(allData)
   return allData;
 };
