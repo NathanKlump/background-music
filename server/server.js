@@ -163,7 +163,7 @@ const allSongsRef = ref(storage, 'public');
 }
 
 // preform the daily task immediately
-//dailyTask();
+dailyTask();
 
 // Then call it every 24 hours
 setInterval(dailyTask, 24 * 60 * 60 * 1000);
