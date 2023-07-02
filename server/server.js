@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const ffmpeg = require('fluent-ffmpeg');
 const fs = require('fs');
 const { ref, listAll, deleteObject, uploadBytesResumable } = require('firebase/storage');
@@ -8,10 +9,18 @@ const { get_playlist, get_track } = require('./config/api');
 const { storage } = require('./config/firebaseConfig');
 
 const app = express();
+app.use(cors());
 const port = 3001;
 
-
-
+//data routes
+app.get('/playlist', async (req, res) => {
+  try {
+    const playlist = await get_playlist();
+    res.send(playlist);
+  } catch (err) {
+    res.status(500).send({ error: 'An error occurred while getting the playlist.' });
+  }
+});
 
 
 // Function to be called every 24 hours
@@ -20,10 +29,7 @@ async function dailyTask() {
   
 
 // Initialize arrays for songs
-let songsArrDB = [];
-let songsArrYT = [];
-let songsNotInDB = [];
-let songsNotInYT = [];
+let songsArrDB = [], songsArrYT = [], songsNotInDB = [], songsNotInYT = [];
 
 // Get reference to the storage location for all songs
 const allSongsRef = ref(storage, 'public');
@@ -37,8 +43,7 @@ const allSongsRef = ref(storage, 'public');
     });
   
     // Extract video titles from YouTube response
-    const extractVideoData = ({ items }) => items.map(item => item.snippet.title);
-    songsArrYT = extractVideoData(youtubeRes);
+    songsArrYT = youtubeRes.map((item) => (item.snippet.title));
   
     // Identify songs that are in YouTube but not in the database (songsNotInDB)
     songsNotInDB = songsArrYT.filter(song => !songsArrDB.includes(song));
@@ -82,6 +87,7 @@ const allSongsRef = ref(storage, 'public');
       };
     
       await uploadBytesResumable(audioFileRef, audioData, metadata);
+      console.log(`added: ${songName} to the database`);
     };
     
     const fetchConvertAndUploadSong = async (song) => {
@@ -156,9 +162,8 @@ const allSongsRef = ref(storage, 'public');
   }
 }
 
-
-// Call the function immediately when the server starts
-dailyTask();
+// preform the daily task immediately
+//dailyTask();
 
 // Then call it every 24 hours
 setInterval(dailyTask, 24 * 60 * 60 * 1000);

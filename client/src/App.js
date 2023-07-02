@@ -35,9 +35,8 @@ function App() {
 
   const fetchPlaylist = async () => {
     try {
-      const data = await get_playlist();
-      const items = data.items;
-      const videoData = items.map((item) => ({
+      const data= await get_playlist();
+      const videoData = data.map((item) => ({
         title: item.snippet.title,
         thumbnail: item.snippet.thumbnails.medium.url,
       }));
