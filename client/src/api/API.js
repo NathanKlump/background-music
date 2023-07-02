@@ -1,6 +1,8 @@
+const base_url = 'https://background-music.onrender.com';
+
 export const get_playlist = async () => {
   try {
-    const response = await fetch('http://localhost:3001/playlist');
+    const response = await fetch(`${base_url}/playlist`);
     if (!response.ok) {
       throw new Error('Request failed');
     }
