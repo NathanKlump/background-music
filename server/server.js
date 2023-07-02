@@ -13,6 +13,8 @@ app.use(cors());
 const port = 3001;
 
 //data routes
+app.get('/status', (req, res) => {res.send('active');});
+
 app.get('/playlist', async (req, res) => {
   try {
     const playlist = await get_playlist();
