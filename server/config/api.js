@@ -1,3 +1,4 @@
+require('dotenv').config();
 const axios = require('axios');
 
 const get_playlist = async () => {
@@ -7,17 +8,17 @@ const get_playlist = async () => {
   do {
     const response = await axios({
       method: 'GET',
-      url: 'https://youtube-v31.p.rapidapi.com/playlistItems',
+      url: `https://${process.env.YOUTUBE_RAPIDAPI_HOST}/playlistItems`,
       params: {
-        playlistId: 'PLeRj4b8xSv41Lv9dJ1I7Mk8RgQ3Kv1YC_',
+        playlistId: process.env.YOUTUBE_PLAYLIST_ID,
         part: 'snippet',
         maxResults: '50',
         pageToken: pageToken,
       },
       headers: {
         'content-type': 'application/octet-stream',
-        'X-RapidAPI-Key': 'a82d08bb97msheba6e9257f802b0p163ca7jsn0392ca4ca0a3',
-        'X-RapidAPI-Host': 'youtube-v31.p.rapidapi.com',
+        'X-RapidAPI-Key': process.env.YOUTUBE_RAPIDAPI_KEY,
+        'X-RapidAPI-Host': process.env.YOUTUBE_RAPIDAPI_HOST,
       },
     });
 
@@ -27,22 +28,22 @@ const get_playlist = async () => {
   return allData;
 };
 
-  const track_api = {
-    method: 'GET',
-    url: 'https://spotify-scraper.p.rapidapi.com/v1/track/download',
-    params: {
-      track: ''
-    },
-    headers: {
-      'X-RapidAPI-Key': 'ebe6fc0e27msh67e1521d5efc9bfp15db2ejsn1b9bd743de9b',
-      'X-RapidAPI-Host': 'spotify-scraper.p.rapidapi.com'
-    }
-  };
+const track_api = {
+  method: 'GET',
+  url: `https://${process.env.SPOTIFY_RAPIDAPI_HOST}/v1/track/download`,
+  params: {
+    track: ''
+  },
+  headers: {
+    'X-RapidAPI-Key': process.env.YOUTUBE_RAPIDAPI_KEY,
+    'X-RapidAPI-Host': process.env.SPOTIFY_RAPIDAPI_HOST,
+  }
+};
 
-  const get_track = async (title) => {
-    track_api.params.track = title;
-    const { data } = await axios.request(track_api);
-    return data;
-  };
+const get_track = async (title) => {
+  track_api.params.track = title;
+  const { data } = await axios.request(track_api);
+  return data;
+};
 
-  module.exports = { get_playlist, get_track };
+module.exports = { get_playlist, get_track };

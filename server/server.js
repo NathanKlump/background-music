@@ -24,7 +24,6 @@ app.get('/playlist', async (req, res) => {
   }
 });
 
-
 // Function to be called every 24 hours
 async function dailyTask() {
   console.log('Performing daily task...');
