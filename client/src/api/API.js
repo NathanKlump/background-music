@@ -1,4 +1,4 @@
-const base_url = 'https://background-music.onrender.com';
+const base_url = 'https://background-music-ep6g.onrender.com';
 
 export const get_playlist = async () => {
   try {
