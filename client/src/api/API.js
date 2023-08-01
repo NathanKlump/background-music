@@ -1,14 +1,28 @@
-const base_url = 'https://background-music-ep6g.onrender.com';
+import axios from 'axios';
 
 export const get_playlist = async () => {
-  try {
-    const response = await fetch(`${base_url}/playlist`);
-    if (!response.ok) {
-      throw new Error('Request failed');
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Error:', error);
-  }
+  let allData = [];
+  let pageToken = null;
+
+  do {
+    const response = await axios({
+      method: 'GET',
+      url: `https://${process.env.REACT_APP_YOUTUBE_RAPIDAPI_HOST}/playlistItems`,
+      params: {
+        playlistId: process.env.REACT_APP_YOUTUBE_PLAYLIST_ID,
+        part: 'snippet',
+        maxResults: '50',
+        pageToken: pageToken,
+      },
+      headers: {
+        'content-type': 'application/octet-stream',
+        'X-RapidAPI-Key': process.env.REACT_APP_YOUTUBE_RAPIDAPI_KEY,
+        'X-RapidAPI-Host': process.env.REACT_APP_YOUTUBE_RAPIDAPI_HOST,
+      },
+    });
+
+    allData = [...allData, ...response.data.items];
+    pageToken = response.data.nextPageToken;
+  } while (pageToken);
+  return allData;
 };
