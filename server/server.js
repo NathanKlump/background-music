@@ -12,23 +12,10 @@ const app = express();
 app.use(cors());
 const port = 3001;
 
-//data routes
-app.get('/status', (req, res) => {res.send('active');});
-
-app.get('/playlist', async (req, res) => {
-  try {
-    const playlist = await get_playlist();
-    res.send(playlist);
-  } catch (err) {
-    res.status(500).send({ error: 'An error occurred while getting the playlist.' });
-  }
-});
-
 // Function to be called every 24 hours
 async function dailyTask() {
   console.log('Performing daily task...');
   
-
 // Initialize arrays for songs
 let songsArrDB = [], songsArrYT = [], songsNotInDB = [], songsNotInYT = [];
 
@@ -163,11 +150,22 @@ const allSongsRef = ref(storage, 'public');
   }
 }
 
-// preform the daily task immediately
-dailyTask();
+//data routes
+app.get('/status', (req, res) => {res.send('active');});
 
-// Then call it every 24 hours
-setInterval(dailyTask, 24 * 60 * 60 * 1000);
+app.get('/sync', (req, res) => {
+  dailyTask();
+  res.send('Daily task executed');
+});
+
+app.get('/playlist', async (req, res) => {
+  try {
+    const playlist = await get_playlist();
+    res.send(playlist);
+  } catch (err) {
+    res.status(500).send({ error: 'An error occurred while getting the playlist.' });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
