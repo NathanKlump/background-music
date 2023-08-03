@@ -1,1 +1,19 @@
+name: Hit Endpoint
+
+on:
+  schedule:
+    # Run at midnight UTC every day
+    - cron: '0 0 * * *'
+
+jobs:
+  make-request:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Hit Endpoint
+      run: |
+        curl -X GET https://background-music-ep6g.onrender.com/sync
 
