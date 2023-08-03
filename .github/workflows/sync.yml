@@ -2,7 +2,6 @@ name: Hit Endpoint
 
 on:
   schedule:
-    # Run at midnight UTC every day
     - cron: '0 0 * * *'
 
 jobs:
