@@ -36,9 +36,10 @@ function App() {
   const fetchPlaylist = async () => {
     try {
       const data= await get_playlist();
+      console.log(data);
       const videoData = data.map((item) => ({
         title: item.snippet.title,
-        thumbnail: item.snippet.thumbnails.medium.url,
+        thumbnail: item.snippet.thumbnails?.medium?.url || '',
       }));
       setVideoData(videoData);
     } catch (error) {
